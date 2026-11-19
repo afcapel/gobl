@@ -27,7 +27,7 @@ func exampleStandardInvoice(t *testing.T) *bill.Invoice {
 		Code:     "123TEST",
 		Currency: "EUR",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 			Ext: tax.ExtensionsOf(cbc.CodeMap{
 				ticket.ExtKeyLottery: "12345678",
 			}),
@@ -318,7 +318,7 @@ func TestInvoiceLineTaxes(t *testing.T) {
 func TestInvoiceTax(t *testing.T) {
 	t.Run("invalid PricesInclude", func(t *testing.T) {
 		inv := exampleStandardInvoice(t)
-		inv.Tax.PricesInclude = tax.CategoryGST
+		inv.Tax.PricesInclude = tax.CategoryCodes{tax.CategoryGST}
 		require.NoError(t, inv.Calculate())
 		err := rules.Validate(inv)
 		require.ErrorContains(t, err, "prices_include must be VAT")
@@ -326,7 +326,7 @@ func TestInvoiceTax(t *testing.T) {
 
 	t.Run("missing PricesInclude will be normalized", func(t *testing.T) {
 		inv := exampleStandardInvoice(t)
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		require.NoError(t, inv.Calculate())
 		require.NoError(t, rules.Validate(inv))
 	})
@@ -334,10 +334,11 @@ func TestInvoiceTax(t *testing.T) {
 	t.Run("missing prices_include", func(t *testing.T) {
 		inv := exampleStandardInvoice(t)
 		require.NoError(t, inv.Calculate())
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		err := rules.Validate(inv)
 		require.ErrorContains(t, err, "GOBL-IT-TICKET-BILL-INVOICE-02")
-		require.ErrorContains(t, err, "GOBL-IT-TICKET-BILL-INVOICE-03")
+		require.NotContains(t, err.Error(), "GOBL-IT-TICKET-BILL-INVOICE-03",
+			"an empty list has no category to check")
 	})
 
 	t.Run("missing Tax will be normalized", func(t *testing.T) {

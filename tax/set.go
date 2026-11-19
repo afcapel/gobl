@@ -2,6 +2,7 @@ package tax
 
 import (
 	"fmt"
+	"github.com/invopop/gobl/num"
 	"strings"
 
 	"github.com/invopop/gobl/cbc"
@@ -150,4 +151,23 @@ func (sv *SetTest) Validate(value any) error {
 		return fmt.Errorf("missing category in %s", strings.Join(cbc.CodeStrings(sv.categories), ", "))
 	}
 	return nil
+}
+
+// IncludedPercent adds up the percents of the combos whose categories are
+// in the list. All of them apply to the same base, so a price that includes
+// them is that base times one plus their sum. It returns nil when no combo
+// with a percent matches.
+func (s Set) IncludedPercent(cats CategoryCodes) *num.Percentage {
+	var sum *num.Percentage
+	for _, c := range s {
+		if !cats.Has(c.Category) || c.Percent == nil {
+			continue
+		}
+		p := *c.Percent
+		if sum != nil {
+			p = addPercentages(*sum, p)
+		}
+		sum = &p
+	}
+	return sum
 }

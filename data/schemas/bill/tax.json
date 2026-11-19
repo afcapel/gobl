@@ -6,9 +6,9 @@
     "bill.Tax": {
       "properties": {
         "prices_include": {
-          "$ref": "https://gobl.org/draft-0/cbc/code",
+          "$ref": "#/$defs/tax.CategoryCodes",
           "title": "Prices Include",
-          "description": "Category of the tax already included in the line item prices, especially\nuseful for B2C retailers with customers who prefer final prices inclusive of\ntax."
+          "description": "Categories of the taxes already included in the line item prices, especially\nuseful for B2C retailers with customers who prefer final prices inclusive of\ntax. A single category may be given as a plain string. A line's price\nincludes only the listed taxes that the line has."
         },
         "rounding": {
           "$ref": "https://gobl.org/draft-0/cbc/key",
@@ -70,6 +70,21 @@
       },
       "type": "object",
       "description": "Tax defines a summary of the taxes which may be applied to an invoice."
+    },
+    "tax.CategoryCodes": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-ZÑa-z0-9]+([.\\-:/,_\u0026 ]?[A-ZÑa-z0-9]+)*$"
+        },
+        {
+          "items": {
+            "type": "string",
+            "pattern": "^[A-ZÑa-z0-9]+([.\\-:/,_\u0026 ]?[A-ZÑa-z0-9]+)*$"
+          },
+          "type": "array"
+        }
+      ]
     }
   }
 }

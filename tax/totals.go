@@ -354,7 +354,7 @@ func (t *Total) Calculate(cur currency.Code, rr cbc.Key) {
 	zero := cur.Def().Zero()
 	switch rr {
 	case RoundingRuleCurrency:
-		t.calculateCurrencyFinalSums(zero, cbc.CodeEmpty)
+		t.calculateCurrencyFinalSums(zero, nil)
 	default:
 		t.calculatePreciseFinalSums(zero)
 	}

@@ -37,15 +37,12 @@ func (tc *TotalCalculator) removeIncludedTaxes(taxLines []*taxLine) error {
 		return nil
 	}
 	for _, tl := range taxLines {
-		if c := tl.taxes.Get(tc.Includes); c != nil {
-			if err := tc.checkIncludedCombo(c); err != nil {
-				return err
-			}
-			if c.Percent == nil {
-				// no taxes, skip
-				continue
-			}
-			tl.total = tl.total.Remove(*c.Percent)
+		percent, err := tc.includedPercent(tl.taxes)
+		if err != nil {
+			return err
+		}
+		if percent != nil {
+			tl.total = tl.total.Remove(*percent)
 		}
 	}
 	return nil

@@ -245,7 +245,7 @@ func testInvoiceESForCorrection(t *testing.T) *bill.Invoice {
 		Series: "TEST",
 		Code:   "123",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -292,7 +292,7 @@ func testInvoicePTForCorrection(t *testing.T) *bill.Invoice {
 		Series: "TEST",
 		Code:   "123",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{

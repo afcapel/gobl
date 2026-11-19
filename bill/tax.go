@@ -11,10 +11,11 @@ import (
 
 // Tax defines a summary of the taxes which may be applied to an invoice.
 type Tax struct {
-	// Category of the tax already included in the line item prices, especially
+	// Categories of the taxes already included in the line item prices, especially
 	// useful for B2C retailers with customers who prefer final prices inclusive of
-	// tax.
-	PricesInclude cbc.Code `json:"prices_include,omitempty" jsonschema:"title=Prices Include"`
+	// tax. A single category may be given as a plain string. A line's price
+	// includes only the listed taxes that the line has.
+	PricesInclude tax.CategoryCodes `json:"prices_include,omitempty" jsonschema:"title=Prices Include"`
 
 	// Rounding model used to perform tax calculations on the invoice. This
 	// will be configured automatically based on the tax regime, or

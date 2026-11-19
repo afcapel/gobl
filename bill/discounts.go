@@ -144,14 +144,14 @@ func (m *Discount) GetTotal() num.Amount {
 	return m.Amount.Invert()
 }
 
-func (m *Discount) removeIncludedTaxes(cat cbc.Code) *Discount {
+func (m *Discount) removeIncludedTaxes(cats tax.CategoryCodes) *Discount {
 	accuracy := defaultTaxRemovalAccuracy
-	rate := m.Taxes.Get(cat)
-	if rate == nil || rate.Percent == nil {
+	percent := m.Taxes.IncludedPercent(cats)
+	if percent == nil {
 		return m
 	}
 	m2 := *m
-	m2.Amount = m2.Amount.Upscale(accuracy).Remove(*rate.Percent)
+	m2.Amount = m2.Amount.Upscale(accuracy).Remove(*percent)
 	return &m2
 }
 

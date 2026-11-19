@@ -1342,7 +1342,7 @@ func TestTotalBySumCalculate(t *testing.T) {
 				Rounding: test.rounding,
 				Date:     d,
 				Lines:    test.lines,
-				Includes: test.taxIncluded,
+				Includes: includedCodes(test.taxIncluded),
 			}
 			tot := new(tax.Total)
 			err := tc.Calculate(tot)
@@ -1381,7 +1381,7 @@ func TestTotalCalculatorCurrencyRoundingIncludedTaxes(t *testing.T) {
 			Rounding: tax.RoundingRuleCurrency,
 			Date:     date,
 			Lines:    lines,
-			Includes: tax.CategoryVAT,
+			Includes: tax.CategoryCodes{tax.CategoryVAT},
 		}
 		tot := new(tax.Total)
 		require.NoError(t, tc.Calculate(tot))
@@ -1510,7 +1510,7 @@ func TestTotalCalculatorCurrencyRounding(t *testing.T) {
 			Rounding: tax.RoundingRuleCurrency,
 			Date:     date,
 			Lines:    lines,
-			Includes: includes,
+			Includes: includedCodes(includes),
 		}
 		tot := new(tax.Total)
 		err := tc.Calculate(tot)
@@ -1689,4 +1689,11 @@ func TestTotalCalculatorCurrencyRounding(t *testing.T) {
 		assert.Equal(t, "15.00", tot.Retained.String())
 		assert.Equal(t, "21.00", tot.Sum.String())
 	})
+}
+
+func includedCodes(code cbc.Code) tax.CategoryCodes {
+	if code == cbc.CodeEmpty {
+		return nil
+	}
+	return tax.CategoryCodes{code}
 }

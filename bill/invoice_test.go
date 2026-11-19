@@ -232,7 +232,7 @@ func TestRemoveIncludedTax2(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -298,7 +298,7 @@ func TestRemoveIncludedTax3(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -393,7 +393,7 @@ func TestRemoveIncludedTax4(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -593,7 +593,7 @@ func TestRemoveIncludedTaxQuantity(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -667,7 +667,7 @@ func TestRemoveIncludedTaxDeep(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -749,7 +749,7 @@ func TestRemoveIncludedTaxDeep2(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -829,7 +829,7 @@ func TestRemoveIncludedTaxItemListPrice(t *testing.T) {
 			Taxes: tax.Set{{Category: tax.CategoryVAT, Rate: tax.RateGeneral}},
 		},
 	)
-	inv.Tax = &bill.Tax{PricesInclude: tax.CategoryVAT}
+	inv.Tax = &bill.Tax{PricesInclude: tax.CategoryCodes{tax.CategoryVAT}}
 	require.NoError(t, inv.Calculate())
 	payable := inv.Totals.Payable
 
@@ -859,7 +859,7 @@ func TestRemoveIncludedTaxUncalculatedLines(t *testing.T) {
 			Item:     &org.Item{Name: "Item", List: num.NewAmount(1210, 2)},
 			Taxes:    tax.Set{{Category: tax.CategoryVAT, Percent: num.NewPercentage(21, 2)}},
 		})
-		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryVAT}
+		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryCodes{tax.CategoryVAT}}
 		inv.Totals = &bill.Totals{Sum: num.MakeAmount(1210, 2)}
 		require.NoError(t, inv.RemoveIncludedTaxes())
 		assert.Nil(t, inv.Lines[0].Item.List)
@@ -873,7 +873,7 @@ func TestRemoveIncludedTaxUncalculatedLines(t *testing.T) {
 			Total:    num.NewAmount(1210, 2),
 			Taxes:    tax.Set{{Category: tax.CategoryVAT, Percent: num.NewPercentage(21, 2)}},
 		})
-		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryVAT}
+		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryCodes{tax.CategoryVAT}}
 		inv.Currency = currency.EUR
 		inv.Totals = &bill.Totals{Sum: num.MakeAmount(1210, 2), Payable: num.MakeAmount(1210, 2)}
 		require.NoError(t, inv.RemoveIncludedTaxes())
@@ -895,7 +895,7 @@ func TestRemoveIncludedTaxUncalculatedLines(t *testing.T) {
 			Total: num.NewAmount(1210, 2),
 			Taxes: tax.Set{{Category: tax.CategoryVAT, Percent: num.NewPercentage(21, 2)}},
 		})
-		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryVAT}
+		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryCodes{tax.CategoryVAT}}
 		inv.Currency = currency.EUR
 		inv.Totals = &bill.Totals{Sum: num.MakeAmount(1210, 2), Payable: num.MakeAmount(1210, 2)}
 		require.NoError(t, inv.RemoveIncludedTaxes())
@@ -914,7 +914,7 @@ func TestRemoveIncludedTaxUncalculatedLines(t *testing.T) {
 			},
 			Taxes: tax.Set{{Category: tax.CategoryVAT, Percent: num.NewPercentage(21, 2)}},
 		})
-		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryVAT}
+		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryCodes{tax.CategoryVAT}}
 		inv.Totals = &bill.Totals{Sum: num.MakeAmount(1210, 2)}
 		require.NotPanics(t, func() {
 			require.NoError(t, inv.RemoveIncludedTaxes())
@@ -1080,7 +1080,7 @@ func TestInvoiceCalculate(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -1148,7 +1148,7 @@ func TestCalculateInverted(t *testing.T) {
 	i := &bill.Invoice{
 		Code: "123TEST",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			TaxID: &tax.Identity{
@@ -1614,7 +1614,7 @@ func baseInvoice(t *testing.T, lines ...*bill.Line) *bill.Invoice {
 		Code:      "00123",
 		IssueDate: cal.MakeDate(2022, 6, 13),
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			Name: "Test Supplier",

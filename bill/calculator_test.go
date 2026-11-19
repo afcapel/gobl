@@ -48,7 +48,7 @@ func TestCalculate(t *testing.T) {
 				},
 			},
 		})
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		inv.Tax.Rounding = tax.RoundingRuleCurrency
 		require.NoError(t, inv.Calculate())
 		assert.Equal(t, "3.48", inv.Totals.Tax.String())
@@ -126,7 +126,7 @@ func TestCalculate(t *testing.T) {
 				},
 			},
 		})
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		require.NoError(t, inv.Calculate())
 		assert.Equal(t, "1.98", inv.Totals.Tax.String())
 		assert.Equal(t, "1.41", inv.Totals.RetainedTax.String())
@@ -141,7 +141,7 @@ func TestCalculate(t *testing.T) {
 				Price: num.NewAmount(90005, 3),
 			},
 		})
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		inv.Payment = &bill.PaymentDetails{
 			Advances: []*pay.Record{
 				{
@@ -164,7 +164,7 @@ func TestCalculate(t *testing.T) {
 				Price: num.NewAmount(90005, 3),
 			},
 		})
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		inv.Payment = &bill.PaymentDetails{
 			Advances: []*pay.Record{
 				{
@@ -208,7 +208,7 @@ func TestCalculate(t *testing.T) {
 				},
 			},
 		}
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		require.NoError(t, inv.Calculate())
 		assert.Equal(t, "21.00", inv.Totals.Tax.String())
 		assert.Equal(t, "15.00", inv.Totals.RetainedTax.String())
@@ -224,7 +224,7 @@ func TestCalculate(t *testing.T) {
 				Price: num.NewAmount(10000, 2),
 			},
 		})
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		inv.Payment = &bill.PaymentDetails{
 			Advances: []*pay.Record{
 				{
@@ -254,7 +254,7 @@ func TestCalculate(t *testing.T) {
 				Price: num.NewAmount(10000, 2),
 			},
 		})
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		inv.Payment = &bill.PaymentDetails{
 			Advances: []*pay.Record{
 				{
@@ -306,7 +306,7 @@ func TestCalculate(t *testing.T) {
 				},
 			},
 		)
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		inv.Payment = &bill.PaymentDetails{
 			Advances: []*pay.Record{
 				{
@@ -368,7 +368,7 @@ func TestCalculate(t *testing.T) {
 			},
 		)
 		inv.Supplier.TaxID.Country = "BR"
-		inv.Tax.PricesInclude = ""
+		inv.Tax.PricesInclude = nil
 		require.NoError(t, inv.Calculate())
 		assert.Equal(t, "0.00", inv.Totals.Tax.String())
 		assert.Equal(t, "200.00", inv.Totals.TotalWithTax.String())
@@ -395,7 +395,7 @@ func TestRemoveIncludedTaxes(t *testing.T) {
 	t.Run("with currency rounding", func(t *testing.T) {
 		inv := baseInvoiceWithLines(t)
 		inv.Tax = &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		}
 		require.NoError(t, inv.Calculate())
 		require.NoError(t, inv.RemoveIncludedTaxes())
@@ -492,7 +492,7 @@ func TestRemoveIncludedTaxes(t *testing.T) {
 		require.NoError(t, inv.Calculate())
 
 		require.NoError(t, inv.RemoveIncludedTaxes())
-		assert.Equal(t, tax.CategoryVAT, inv.Tax.PricesInclude,
+		assert.Equal(t, tax.CategoryCodes{tax.CategoryVAT}, inv.Tax.PricesInclude,
 			"nothing should be removed")
 	})
 

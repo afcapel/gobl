@@ -321,7 +321,7 @@ func exampleInvoice() *bill.Invoice {
 		Series: "TEST",
 		Code:   "000123",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			Name: "Test Supplier",

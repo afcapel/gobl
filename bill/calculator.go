@@ -7,6 +7,7 @@ import (
 	"github.com/invopop/gobl/cbc"
 	"github.com/invopop/gobl/currency"
 	"github.com/invopop/gobl/l10n"
+	"github.com/invopop/gobl/num"
 	"github.com/invopop/gobl/org"
 	"github.com/invopop/gobl/schema"
 	"github.com/invopop/gobl/tax"
@@ -109,7 +110,7 @@ func calculate(doc billable) error {
 	t.reset(zero)
 
 	// Figure out rounding rules and if prices include tax early
-	var pit cbc.Code
+	var pit tax.CategoryCodes
 	if tx := doc.getTax(); tx != nil {
 		pit = tx.PricesInclude
 	}
@@ -172,11 +173,9 @@ func calculate(doc billable) error {
 	}
 
 	// Remove any included taxes from the total.
-	ct := t.Taxes.Category(pit)
-	if ct != nil {
-		ti := ct.Amount
-		t.TaxIncluded = &ti
-		t.Total = t.Total.Subtract(ti)
+	if ti := includedTaxAmount(t.Taxes, pit); ti != nil {
+		t.TaxIncluded = ti
+		t.Total = t.Total.Subtract(*ti)
 	}
 
 	// Calculate the total with *all* the taxes.
@@ -324,7 +323,7 @@ func removeIncludedTaxes(doc billable) error {
 	}
 
 	tx := doc.getTax()
-	tx.PricesInclude = ""
+	tx.PricesInclude = nil
 
 	// Tax-exclusive prices need more decimal places than the currency to
 	// represent the original amounts, so a currency rounding rule inherited
@@ -370,4 +369,22 @@ func calculateComplements(comps []*schema.Object) error {
 		}
 	}
 	return nil
+}
+
+// includedTaxAmount adds up the amounts of the tax categories included in
+// prices, or returns nil when the totals have none of them.
+func includedTaxAmount(taxes *tax.Total, included tax.CategoryCodes) *num.Amount {
+	var sum *num.Amount
+	for _, code := range included {
+		ct := taxes.Category(code)
+		if ct == nil {
+			continue
+		}
+		a := ct.Amount
+		if sum != nil {
+			a = sum.Add(a)
+		}
+		sum = &a
+	}
+	return sum
 }
