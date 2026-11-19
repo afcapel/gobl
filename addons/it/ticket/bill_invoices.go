@@ -25,8 +25,8 @@ func normalizeInvoice(inv *bill.Invoice) {
 	if inv.Tax == nil {
 		inv.Tax = new(bill.Tax)
 	}
-	if inv.Tax.PricesInclude == "" {
-		inv.Tax.PricesInclude = tax.CategoryVAT
+	if inv.Tax.PricesInclude.IsEmpty() {
+		inv.Tax.PricesInclude = tax.CategoryCodes{tax.CategoryVAT}
 	}
 	if !inv.Tax.Ext.IsZero() && inv.Tax.Ext.Has(ExtKeyLottery) {
 		inv.Tax.Ext = inv.Tax.Ext.Set(ExtKeyLottery, cbc.NormalizeAlphanumericalCode(inv.Tax.Ext.Get(ExtKeyLottery)))
@@ -40,8 +40,10 @@ func billInvoiceRules() *rules.Set {
 			rules.Assert("01", "tax is required", is.Present),
 			rules.Field("prices_include",
 				rules.Assert("02", "prices_include is required", is.Present),
-				rules.Assert("03", "prices_include must be VAT",
-					is.In(tax.CategoryVAT),
+				rules.Each(
+					rules.Assert("03", "prices_include must be VAT",
+						is.In(tax.CategoryVAT),
+					),
 				),
 			),
 		),

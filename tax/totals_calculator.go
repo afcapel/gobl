@@ -16,7 +16,7 @@ type TotalCalculator struct {
 	Currency currency.Code
 	Date     cal.Date
 	Lines    []TaxableLine
-	Includes cbc.Code // Tax included in price
+	Includes CategoryCodes // Tax categories included in prices
 
 	zero num.Amount
 }
@@ -68,12 +68,25 @@ func (tc *TotalCalculator) prepareCombos(taxLines []*taxLine) error {
 // taxes included in prices.
 func (tc *TotalCalculator) checkIncludedCombo(c *Combo) error {
 	if c.retained {
-		return ErrInvalidPricesInclude.WithMessage("cannot include retained category '%s'", tc.Includes.String())
+		return ErrInvalidPricesInclude.WithMessage("cannot include retained category '%s'", c.Category.String())
 	}
 	if c.informative {
-		return ErrInvalidPricesInclude.WithMessage("cannot include informative category '%s'", tc.Includes.String())
+		return ErrInvalidPricesInclude.WithMessage("cannot include informative category '%s'", c.Category.String())
 	}
 	return nil
+}
+
+// includedPercent provides the sum of the percents of the line's taxes that
+// are included in its price, after checking that they can be included.
+func (tc *TotalCalculator) includedPercent(taxes Set) (*num.Percentage, error) {
+	for _, c := range taxes {
+		if tc.Includes.Has(c.Category) {
+			if err := tc.checkIncludedCombo(c); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return taxes.IncludedPercent(tc.Includes), nil
 }
 
 // taxLine is used to replace
@@ -91,4 +104,11 @@ func mapTaxLines(lines []TaxableLine) []*taxLine {
 		}
 	}
 	return tls
+}
+
+// addPercentages adds two percentages without losing the precision of
+// either of them.
+func addPercentages(a, b num.Percentage) num.Percentage {
+	sum := a.Base().MatchPrecision(b.Base()).Add(b.Base())
+	return num.MakePercentage(sum.Value(), sum.Exp())
 }

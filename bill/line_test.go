@@ -374,7 +374,7 @@ func TestLineRemoveIncludedTaxes(t *testing.T) {
 			},
 		}
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
-		line = removeLineIncludedTaxes(line, tax.CategoryVAT)
+		line = removeLineIncludedTaxes(line, tax.CategoryCodes{tax.CategoryVAT})
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
 		assert.Equal(t, "8.2645", line.Item.Price.String())
 		assert.Equal(t, "8.2645", line.Total.String())
@@ -400,7 +400,7 @@ func TestLineRemoveIncludedTaxes(t *testing.T) {
 			},
 		}
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
-		line = removeLineIncludedTaxes(line, tax.CategoryVAT)
+		line = removeLineIncludedTaxes(line, tax.CategoryCodes{tax.CategoryVAT})
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
 		assert.Equal(t, "8.2645", line.Item.Price.String())
 		assert.Equal(t, "8.1819", line.Total.String())
@@ -426,7 +426,7 @@ func TestLineRemoveIncludedTaxes(t *testing.T) {
 			},
 		}
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
-		line = removeLineIncludedTaxes(line, tax.CategoryVAT)
+		line = removeLineIncludedTaxes(line, tax.CategoryCodes{tax.CategoryVAT})
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
 		assert.Equal(t, "8.2645", line.Item.Price.String())
 		assert.Equal(t, "8.3471", line.Total.String())
@@ -455,7 +455,7 @@ func TestLineRemoveIncludedTaxes(t *testing.T) {
 			},
 		}
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
-		line = removeLineIncludedTaxes(line, tax.CategoryVAT)
+		line = removeLineIncludedTaxes(line, tax.CategoryCodes{tax.CategoryVAT})
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
 		assert.Equal(t, "8.2645", line.Item.Price.String())
 		assert.Equal(t, "8.2645", line.Breakdown[0].Item.Price.String())
@@ -573,7 +573,7 @@ func TestLineItemListPrice(t *testing.T) {
 		}
 		norm.Normalize(line)
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
-		line = removeLineIncludedTaxes(line, tax.CategoryVAT)
+		line = removeLineIncludedTaxes(line, tax.CategoryCodes{tax.CategoryVAT})
 		norm.Normalize(line)
 		require.NoError(t, calculateLine(line, currency.EUR, nil, tax.RoundingRulePrecise))
 		assert.Nil(t, line.Item.List)

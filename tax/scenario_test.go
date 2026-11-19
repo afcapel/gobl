@@ -289,7 +289,7 @@ func scenariosInvoiceExample() *bill.Invoice {
 		Code:      "00123",
 		IssueDate: cal.MakeDate(2022, 6, 13),
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Supplier: &org.Party{
 			Name: "Test Supplier",

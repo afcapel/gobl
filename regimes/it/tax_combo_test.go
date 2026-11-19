@@ -51,7 +51,7 @@ func testInvoiceStandard(t *testing.T) *bill.Invoice {
 		Code:     "123TEST",
 		Currency: "EUR",
 		Tax: &bill.Tax{
-			PricesInclude: tax.CategoryVAT,
+			PricesInclude: tax.CategoryCodes{tax.CategoryVAT},
 		},
 		Type: bill.InvoiceTypeStandard,
 		Supplier: &org.Party{

@@ -39,7 +39,7 @@ func TestInvoiceValidation(t *testing.T) {
 	t.Run("missing tax document type", func(t *testing.T) {
 		inv := testInvoiceStandard(t)
 		inv.Type = bill.InvoiceTypeOther
-		inv.Tax = &bill.Tax{PricesInclude: "VAT"}
+		inv.Tax = &bill.Tax{PricesInclude: tax.CategoryCodes{"VAT"}}
 		require.NoError(t, inv.Calculate())
 		err := rules.Validate(inv)
 		assert.ErrorContains(t, err, "document type extension is required")

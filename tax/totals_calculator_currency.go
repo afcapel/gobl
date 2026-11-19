@@ -1,7 +1,8 @@
 package tax
 
 import (
-	"github.com/invopop/gobl/cbc"
+	"fmt"
+
 	"github.com/invopop/gobl/num"
 )
 
@@ -22,7 +23,7 @@ func (tc *TotalCalculator) calculateCurrencyTotals(t *Total, taxLines []*taxLine
 	// rounded to the currency's precision.
 	for _, tl := range taxLines {
 		for _, c := range tl.taxes {
-			if c.Category == tc.Includes && c.Percent != nil {
+			if tc.Includes.Has(c.Category) && c.Percent != nil {
 				// base already accumulated during extraction
 				continue
 			}
@@ -35,51 +36,122 @@ func (tc *TotalCalculator) calculateCurrencyTotals(t *Total, taxLines []*taxLine
 	return nil
 }
 
-// extractIncludedTaxes removes the included tax from each line's total.
-// The tax is calculated over the accumulated sum of the rate's tax-inclusive
-// line totals, with each line assuming the increment, so that the resulting
-// bases and tax amounts will always add up to the sum of the original totals.
+// extractIncludedTaxes removes the included taxes from each line's total.
+// Lines that include the same rates share running sums of their
+// tax-inclusive totals. Each tax is calculated over the running sum, and
+// each line takes the increment, so that the resulting bases and tax amounts
+// always add up to the sum of the original totals.
 func (tc *TotalCalculator) extractIncludedTaxes(t *Total, taxLines []*taxLine) error {
 	if tc.Includes.IsEmpty() {
 		return nil
 	}
+	groups := make(map[string]*includedGroup)
 	for _, tl := range taxLines {
-		c := tl.taxes.Get(tc.Includes)
-		if c == nil {
+		combos, err := tc.includedCombos(tl.taxes)
+		if err != nil {
+			return err
+		}
+		if len(combos) == 0 {
+			continue
+		}
+		g := groups[includedGroupKey(t, combos, tc.zero)]
+		if g == nil {
+			g = newIncludedGroup(t, combos, tc.zero)
+			groups[includedGroupKey(t, combos, tc.zero)] = g
+		}
+		tl.total = g.extract(tl.total, tc.zero.Exp())
+	}
+	return nil
+}
+
+// includedCombos provides the line's combos whose taxes are included in its
+// price, leaving out exempt combos, which include nothing.
+func (tc *TotalCalculator) includedCombos(taxes Set) ([]*Combo, error) {
+	var combos []*Combo
+	for _, c := range taxes {
+		if !tc.Includes.Has(c.Category) {
 			continue
 		}
 		if err := tc.checkIncludedCombo(c); err != nil {
-			return err
+			return nil, err
 		}
-		if c.Percent == nil {
-			// no taxes, skip
-			continue
+		if c.Percent != nil {
+			combos = append(combos, c)
 		}
-		// use the rate total to accumulate the running sums of the
-		// tax-inclusive totals and their taxes, with four extra decimal
-		// places of precision to avoid double-rounding errors close to
-		// the currency's rounding boundaries
-		rt := t.rateTotalFor(c, tc.zero)
-		rt.Base = rt.Base.Add(tl.total)
-		tax := c.Percent.From(rt.Base.Upscale(4)).Rescale(tc.zero.Exp())
-		tl.total = tl.total.Subtract(tax.Subtract(rt.Amount))
-		rt.Amount = tax
 	}
+	return combos, nil
+}
 
-	// swap the accumulated tax-inclusive totals for the final bases
-	if ct := t.Category(tc.Includes); ct != nil {
-		for _, rt := range ct.Rates {
-			rt.Base = rt.Base.Subtract(rt.Amount)
+// includedGroup holds the running sums of the lines that include the same
+// rates in their prices.
+type includedGroup struct {
+	combos  []*Combo
+	rates   []*RateTotal
+	percent num.Percentage // sum of the included percents
+	gross   num.Amount     // running sum of the tax-inclusive totals
+	base    num.Amount     // running sum of the extracted bases
+	taxes   []num.Amount   // running sum of each extracted tax
+}
+
+func newIncludedGroup(t *Total, combos []*Combo, zero num.Amount) *includedGroup {
+	g := &includedGroup{
+		combos: combos,
+		gross:  zero,
+		base:   zero,
+		taxes:  make([]num.Amount, len(combos)),
+	}
+	for i, c := range combos {
+		g.rates = append(g.rates, t.rateTotalFor(c, zero))
+		g.taxes[i] = zero
+		if i == 0 {
+			g.percent = *c.Percent
+		} else {
+			g.percent = addPercentages(g.percent, *c.Percent)
 		}
 	}
-	return nil
+	return g
+}
+
+func includedGroupKey(t *Total, combos []*Combo, zero num.Amount) string {
+	key := ""
+	for _, c := range combos {
+		key += fmt.Sprintf("%p;", t.rateTotalFor(c, zero))
+	}
+	return key
+}
+
+// extract adds a line's tax-inclusive total to the running sums, and returns
+// the line's base. Four extra decimal places avoid double-rounding errors
+// close to the currency's rounding boundaries.
+func (g *includedGroup) extract(total num.Amount, exp uint32) num.Amount {
+	g.gross = g.gross.Add(total)
+	gross := g.gross.Upscale(4)
+	base := g.gross
+	for i, c := range g.combos {
+		var tax num.Amount
+		if len(g.combos) == 1 {
+			tax = c.Percent.From(gross)
+		} else {
+			tax = c.Percent.Of(gross.Divide(g.percent.Factor()))
+		}
+		tax = tax.Rescale(exp)
+		g.rates[i].Amount = g.rates[i].Amount.Add(tax.Subtract(g.taxes[i]))
+		g.taxes[i] = tax
+		base = base.Subtract(tax)
+	}
+	lineBase := base.Subtract(g.base)
+	g.base = base
+	for _, rt := range g.rates {
+		rt.Base = rt.Base.Add(lineBase)
+	}
+	return lineBase
 }
 
 // calculateCurrencyFinalSums provides the final category and document sums
 // from the accumulated bases at the currency's precision, keeping any tax
 // amounts already extracted from the tax-inclusive totals of the included
 // category.
-func (t *Total) calculateCurrencyFinalSums(zero num.Amount, includes cbc.Code) {
+func (t *Total) calculateCurrencyFinalSums(zero num.Amount, includes CategoryCodes) {
 	t.Sum = zero
 	t.Retained = nil
 	for _, ct := range t.Categories {
@@ -90,7 +162,7 @@ func (t *Total) calculateCurrencyFinalSums(zero num.Amount, includes cbc.Code) {
 				rt.Amount = zero
 				continue // exempt, nothing else to do
 			}
-			if ct.Code != includes {
+			if !includes.Has(ct.Code) {
 				rt.Amount = rt.Percent.Of(rt.Base)
 			}
 			ct.Amount = ct.Amount.Add(rt.Amount)

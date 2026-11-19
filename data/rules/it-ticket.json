@@ -31,11 +31,18 @@
                   "id": "GOBL-IT-TICKET-BILL-INVOICE-02",
                   "desc": "prices_include is required",
                   "tests": "present"
-                },
+                }
+              ],
+              "subsets": [
                 {
-                  "id": "GOBL-IT-TICKET-BILL-INVOICE-03",
-                  "desc": "prices_include must be VAT",
-                  "tests": "one of [VAT]"
+                  "each": true,
+                  "assert": [
+                    {
+                      "id": "GOBL-IT-TICKET-BILL-INVOICE-03",
+                      "desc": "prices_include must be VAT",
+                      "tests": "one of [VAT]"
+                    }
+                  ]
                 }
               ]
             }
